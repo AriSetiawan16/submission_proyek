@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Menghindari error rendering di Streamlit
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -25,29 +27,20 @@ st.markdown("---")
 
 st.subheader("📊 Distribusi Polutan")
 df_air_quality = df[['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']].dropna()
-fig, ax = plt.subplots(figsize=(10, 5))
-sns.boxplot(data=df_air_quality, ax=ax)
-ax.set_title("Distribusi Polutan")
-st.pyplot(fig)
+st.box_chart(df_air_quality)
 
 st.markdown("---")
 st.subheader("📈 Tren PM2.5 per Bulan")
 df['datetime'] = pd.to_datetime(df[['year', 'month', 'day', 'hour']])
 df_monthly = df.groupby(['year', 'month'])['PM2.5'].mean().reset_index()
 df_monthly['time'] = pd.to_datetime(df_monthly[['year', 'month']].assign(day=1))
-
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.lineplot(x=df_monthly['time'], y=df_monthly['PM2.5'], marker='o', linestyle='-', ax=ax)
-ax.set_xlabel("Waktu")
-ax.set_ylabel("PM2.5")
-ax.set_title("Tren Rata-rata PM2.5 per Bulan")
-st.pyplot(fig)
+st.line_chart(df_monthly.set_index('time')['PM2.5'])
 
 st.markdown("---")
 st.subheader("🔗 Hubungan antara PM2.5 dan Variabel Cuaca")
 selected_features = ['PM2.5', 'TEMP', 'PRES', 'DEWP']
 df_pairplot = df[selected_features].dropna()
-st.pyplot(sns.pairplot(df_pairplot))
+st.scatter_chart(df_pairplot)
 
 # Set background color
 st.markdown(
