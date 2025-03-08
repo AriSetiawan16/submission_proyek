@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')  # Menghindari error rendering di Streamlit
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api as sm
 
 # Load dataset
 file_path = "submission_ari.csv"
@@ -27,20 +26,41 @@ st.markdown("---")
 
 st.subheader("📊 Distribusi Polutan")
 df_air_quality = df[['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']].dropna()
-st.box_chart(df_air_quality)
+fig, ax = plt.subplots(figsize=(10, 5))
+sns.boxplot(data=df_air_quality, ax=ax)
+ax.set_title("Distribusi Polutan")
+st.pyplot(fig)
 
 st.markdown("---")
 st.subheader("📈 Tren PM2.5 per Bulan")
 df['datetime'] = pd.to_datetime(df[['year', 'month', 'day', 'hour']])
 df_monthly = df.groupby(['year', 'month'])['PM2.5'].mean().reset_index()
 df_monthly['time'] = pd.to_datetime(df_monthly[['year', 'month']].assign(day=1))
-st.line_chart(df_monthly.set_index('time')['PM2.5'])
+
+fig, ax = plt.subplots(figsize=(12, 6))
+sns.lineplot(x=df_monthly['time'], y=df_monthly['PM2.5'], marker='o', linestyle='-', ax=ax)
+ax.set_xlabel("Waktu")
+ax.set_ylabel("PM2.5")
+ax.set_title("Tren Rata-rata PM2.5 per Bulan")
+st.pyplot(fig)
 
 st.markdown("---")
 st.subheader("🔗 Hubungan antara PM2.5 dan Variabel Cuaca")
 selected_features = ['PM2.5', 'TEMP', 'PRES', 'DEWP']
 df_pairplot = df[selected_features].dropna()
-st.scatter_chart(df_pairplot)
+st.pyplot(sns.pairplot(df_pairplot))
+
+st.markdown("---")
+st.subheader("📉 Dekomposisi Time Series PM2.5")
+df.set_index('datetime', inplace=True)
+df_monthly_pm25 = df['PM2.5'].resample('M').mean().dropna()
+decomposition = sm.tsa.seasonal_decompose(df_monthly_pm25, model='additive')
+
+fig, axes = plt.subplots(3, 1, figsize=(12, 8))
+decomposition.trend.plot(ax=axes[0], title='Tren', legend=True)
+decomposition.seasonal.plot(ax=axes[1], title='Musiman', legend=True, color='green')
+decomposition.resid.plot(ax=axes[2], title='Residual', legend=True, color='red')
+st.pyplot(fig)
 
 # Set background color
 st.markdown(
