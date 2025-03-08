@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import statsmodels.api as sm
 
 # Load dataset
 file_path = "submission_ari.csv"
@@ -49,18 +48,6 @@ st.subheader("🔗 Hubungan antara PM2.5 dan Variabel Cuaca")
 selected_features = ['PM2.5', 'TEMP', 'PRES', 'DEWP']
 df_pairplot = df[selected_features].dropna()
 st.pyplot(sns.pairplot(df_pairplot))
-
-st.markdown("---")
-st.subheader("📉 Dekomposisi Time Series PM2.5")
-df.set_index('datetime', inplace=True)
-df_monthly_pm25 = df['PM2.5'].resample('M').mean().dropna()
-decomposition = sm.tsa.seasonal_decompose(df_monthly_pm25, model='additive')
-
-fig, axes = plt.subplots(3, 1, figsize=(12, 8))
-decomposition.trend.plot(ax=axes[0], title='Tren', legend=True)
-decomposition.seasonal.plot(ax=axes[1], title='Musiman', legend=True, color='green')
-decomposition.resid.plot(ax=axes[2], title='Residual', legend=True, color='red')
-st.pyplot(fig)
 
 # Set background color
 st.markdown(
